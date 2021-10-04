@@ -3,7 +3,7 @@
 import re
 
 # external packages
-from vs_library.cli import Node, NodeBundle, DecoyNode
+from vs_library.cli import Node, NodeBundle, DecoyNode, textformat
 from vs_library.cli.objects import Command, Prompt, Table
 from vs_library.vsdb import references
 from vs_library.tools import pandas_functions_cli
@@ -82,11 +82,11 @@ class GenerateHarvest(NodeBundle):
             self.ratings_harvest.generate()
 
     def _populate_table(self):
-        self.__table_0.table = [['Span', self.__prompt_0.responses],
-                                ['SIG ID', self.__prompt_1.responses],
-                                ['Website Display', self.__prompt_2.option_responses(string=True)],
-                                ['Rating Session', self.__prompt_3.option_responses(string=True)],
-                                ['Rating Format', self.__prompt_4.option_responses(string=True)]]
+        self.__table_0.table = [[textformat.apply('Span', emphases=['bold']), self.__prompt_0.responses],
+                                [textformat.apply('SIG ID', emphases=['bold']), self.__prompt_1.responses],
+                                [textformat.apply('Website Display', emphases=['bold']), self.__prompt_2.option_responses(string=True)],
+                                [textformat.apply('Rating Session', emphases=['bold']), self.__prompt_3.option_responses(string=True)],
+                                [textformat.apply('Rating Format', emphases=['bold']), self.__prompt_4.option_responses(string=True)]]
     @staticmethod
     def is_validyear(x):
 

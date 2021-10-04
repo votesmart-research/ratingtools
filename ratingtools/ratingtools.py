@@ -2,10 +2,8 @@
 
 # internal packages
 import ratingtools_cli
-import match
-import match_cli
-import harvest
-import harvest_cli
+from match import match, match_cli
+from harvest import harvest, harvest_cli
 
 # external packages
 from vs_library import database, cli
@@ -36,7 +34,7 @@ intro_bundle = ratingtools_cli.IntroToRatingTools(import_rating_worksheet_match,
 import_rating_worksheet_match.entry_node.clear_screen = True
 import_ratings_worksheet_harvest.entry_node.clear_screen = True
 analyze_rating_worksheet.entry_node.clear_screen = True
-generate_harvest.entry_node.clear_screen=True
+generate_harvest.entry_node.clear_screen = True
 execute_query.entry_node.clear_screen = True
 
 engine = cli.Engine(intro_bundle.entry_node)
