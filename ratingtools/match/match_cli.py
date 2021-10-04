@@ -61,10 +61,10 @@ class AnalyzeRatingWorksheet(NodeBundle):
     
     def _execute(self):
         info = self.rating_worksheet.worksheet_info
-        self.__table_0.table = [['Number of Columns', info['number_of_columns']],
-                                ['Number of Rows', info['number_of_rows']],
-                                ['Columns Added', info['columns_added']],
-                                ['Columns not Required', info['columns_not_required']]]
+        self.__table_0.table = [[textformat.apply('Number of Columns', emphases=['bold']), info['number_of_columns']],
+                                [textformat.apply('Number of Rows', emphases=['bold']), info['number_of_rows']],
+                                [textformat.apply('Columns Added', emphases=['bold']), info['columns_added']],
+                                [textformat.apply('Columns not Required', emphases=['bold']), info['columns_not_required']]]
 
         if self.rating_worksheet.not_required_columns:
             self.__entry_node.set_next(self.__node_0)
