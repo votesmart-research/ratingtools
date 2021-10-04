@@ -131,3 +131,4 @@ dmypy.json
 # Custom ignore files
 .DS_Store
 *.ini
+vs_library
