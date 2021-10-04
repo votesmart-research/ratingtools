@@ -26,8 +26,8 @@ class RatingWorksheet:
     def worksheet_info(self):
         info = {'number_of_columns': len(self.df.columns),
                 'number_of_rows': len(self.df),
-                'columns_added': ', '.join(self.__columns_added),
-                'columns_not_required': ', '.join(self.__not_required_df.columns)}
+                'columns_added': ', '.join(map(str, self.__columns_added)),
+                'columns_not_required': ', '.join(map(str, self.__not_required_df.columns))}
         return info
     
     def read(self, filepath):
