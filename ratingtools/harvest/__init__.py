@@ -1,2 +1,2 @@
-from harvest import *
+from .harvest import *
 from . import harvest_cli
