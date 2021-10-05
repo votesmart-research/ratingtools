@@ -258,11 +258,9 @@ class RatingMatch(NodeBundle):
 
         if not(match_info['score'] == 100 and match_info['duplicates'] == 0 and match_info['review'] == 0):
             self.__bundle_1.set_next_node(self.__node_2)
-            self.__bundle_2.set_next_node(self.__exit_node)
         else:
             self.rating_harvest.df = df
             self.__bundle_1.set_next_node(self.__node_3)
-            self.__bundle_2.set_next_node(self.__node_4)
 
 
 class ExportMatchedDf(pandas_functions_cli.ExportSpreadsheet):
