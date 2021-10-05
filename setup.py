@@ -26,7 +26,7 @@ config = {
     'author_email': "jtai.dvlp@gmail.com",
     'version': '0.0.1',
     'install_requires': install_requires,
-    'packages': ['ratingtools'],
+    'packages': ['ratingtools', 'ratingtools.match', 'ratingtools.harvest'],
     'name': 'ratingtools'
 }
 

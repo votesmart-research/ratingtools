@@ -1,2 +1,2 @@
-from match import *
+from .match import *
 from . import match_cli
