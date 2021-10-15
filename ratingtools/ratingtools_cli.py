@@ -21,7 +21,7 @@ class IntroToRatingTools(NodeBundle):
         self.__entry_node = Node(self.__display_0, name=f'{name}_welcome-msg', 
                              acknowledge=True, clear_screen=True)
         self.__node_0 = Node(self.__prompt_0, name=f'{name}_pick-match-or-harvest', parent=self.__entry_node, 
-                             show_instructions=True, clear_screen=True)
+                             show_hideout=True, clear_screen=True)
         self.__exit_node = DecoyNode(name=f'{name}_last-node', parent=self.__node_0)
 
         self.__bundle_0 = rm_bundle
