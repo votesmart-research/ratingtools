@@ -34,9 +34,9 @@ class AnalyzeRatingWorksheet(NodeBundle):
 
         # NODES
         self.__entry_node = Node(self.__table_0, name=f'{name}_table-analysis', 
-                             acknowledge=True, show_instructions=True)
+                             acknowledge=True, show_hideout=True)
         self.__node_0 = Node(self.__prompt_0, name=f'{name}_column-not-required', parent=self.__entry_node,
-                             show_instructions=True, clear_screen=True)
+                             show_hideout=True, clear_screen=True)
         self.__node_1 = Node(self.__prompt_1, name=f'{name}_column-to-keep', parent=self.__node_0)
         self.__exit_node = DecoyNode(name=f'{name}_last-node', parent=self.__entry_node)
 
@@ -90,7 +90,7 @@ class SelectQueryForms(NodeBundle):
         self.__prompt = Prompt("Are these rating for incumbents or for candidates?")
         
         # NODES
-        self.__entry_node = Node(self.__prompt, name=f'{name}_choices', clear_screen=True, show_instructions=True)
+        self.__entry_node = Node(self.__prompt, name=f'{name}_choices', clear_screen=True, show_hideout=True)
         self.__exit_node = DecoyNode(name=f'{name}_last')
 
         self.__bundle_0 = queries_cli.IncumbentQueryForm(self.query_tool, parent=self.__entry_node)
@@ -122,11 +122,11 @@ class DatabaseConnection(NodeBundle):
 
         # NODES
         self.__entry_node = Node(self.__display_0, name=f'{name}_connection-required', 
-                             acknowledge=True, show_instructions=True, clear_screen=True)
+                             acknowledge=True, show_hideout=True, clear_screen=True)
         self.__node_0 = Node(self.__prompt_0, name=f'{name}_pick-new-or-existing', parent=self.__entry_node, 
-                             show_instructions=True, clear_screen=True)
+                             show_hideout=True, clear_screen=True)
         self.__node_1 = Node(self.__prompt_1, name=f'{name}_to-connect-or-no',
-                             show_instructions=True, clear_screen=True)
+                             show_hideout=True, clear_screen=True)
 
         self.__bundle_0 = database_cli.AddConnection(connection_manager, parent=self.__node_0)
         self.__bundle_1 = database_cli.SelectConnection(connection_manager, parent=self.__node_0)
@@ -134,8 +134,8 @@ class DatabaseConnection(NodeBundle):
                                                            selection_bundle=self.__bundle_1, parent=self.__node_1)
         self.__bundle_3 = database_cli.EditConnection(connection_manager, self.__bundle_1.selected_connection, parent=self.__node_1)
 
-        self.__node_1.adopt(self.__bundle_1.entry_node)
-        self.__bundle_0.adopt(self.__bundle_1)
+        self.__node_1.adopt(self.__node_0)
+        self.__bundle_0.adopt_node(self.__node_0)
         self.__bundle_1.adopt_node(self.__node_1)
         self.__bundle_3.adopt_node(self.__node_0)
 
@@ -152,7 +152,7 @@ class DatabaseConnection(NodeBundle):
         self.__prompt_1.options = {
             '1': Command(lambda: self.__node_1.set_next(self.__bundle_2.entry_node), value="Yes, certainly"),
             '2': Command(lambda: self.__node_1.set_next(self.__bundle_3.entry_node), value="Edit Connection"),
-            '3': Command(lambda: self.__node_1.set_next(self.__bundle_1.entry_node), value="Return to Selection")
+            '3': Command(lambda: self.__node_1.set_next(self.__node_0), value="Return to Menu")
             }
 
         self.__prompt_0.exe_seq = 'before'
@@ -180,7 +180,7 @@ class DatabaseConnection(NodeBundle):
 
 class RatingMatch(NodeBundle):
 
-    def __init__(self, query_tool, rating_worksheet, rating_harvest, query_bundle=None, parent=None):
+    def __init__(self, query_tool, rating_worksheet, rating_harvest, query_form=None, parent=None):
         
         name = 'rating-match'
         self.query_tool = query_tool
@@ -197,9 +197,9 @@ class RatingMatch(NodeBundle):
         
         # NODES
         self.__entry_node = Node(self.__prompt_0, name=f'{name}_commence',
-                             show_instructions=True)
+                             show_hideout=True)
         self.__node_0 = Node(self.__display_0, name=f'{name}_execute', parent=self.__entry_node,
-                             show_instructions=True, clear_screen=True, store=False)
+                             show_hideout=True, clear_screen=True, store=False)
         self.__node_1 = Node(self.__table_0, name=f'{name}_results', parent=self.__node_0, 
                              acknowledge=True)
         self.__node_2 = Node(self.__display_1, name=f'{name}_query-incomplete', 
@@ -238,9 +238,9 @@ class RatingMatch(NodeBundle):
             '2': Command(lambda: self.__node_4.set_next(self.__exit_node), value="No")
             }
 
-        if query_bundle:
-            self.__entry_node.adopt(query_bundle.entry_node)
-            self.__prompt_0.options['R'] = Command(lambda: self.__entry_node.set_next(query_bundle.entry_node), value="Return to Query Edit")
+        if query_form:
+            self.__entry_node.adopt(query_form.entry_node)
+            self.__prompt_0.options['R'] = Command(lambda: self.__entry_node.set_next(query_form.entry_node), value="Return to Query Edit")
 
         super().__init__(self.__entry_node, self.__exit_node, name=name, parent=parent)
 

@@ -36,7 +36,7 @@ class RatingWorksheet:
             df, message = pandas_functions.read_spreadsheet(filepath)
 
             if df.empty:
-                return message
+                return False, message
             else:
                 pass
 

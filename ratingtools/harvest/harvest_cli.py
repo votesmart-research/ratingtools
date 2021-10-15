@@ -29,18 +29,19 @@ class GenerateHarvest(NodeBundle):
         
         # NODES
         self.__entry_node = Node(self.__prompt_0, name=f'{name}_span', 
-                             show_instructions=True)
+                             show_hideout=True)
         self.__node_0 = Node(self.__prompt_1, name=f'{name}_sig-id', parent=self.__entry_node, 
-                             show_instructions=True)
+                             show_hideout=True)
         self.__node_1 = Node(self.__prompt_2, name=f'{name}_usesigrating', parent=self.__node_0, 
-                             show_instructions=True)
+                             show_hideout=True)
         self.__node_2 = Node(self.__prompt_3, name=f'{name}_ratingsession', parent=self.__node_1, 
-                             show_instructions=True)
+                             show_hideout=True)
         self.__node_3 = Node(self.__prompt_4, name=f'{name}_ratingformat', parent=self.__node_2, 
-                             show_instructions=True)
-        self.__node_4 = Node(self.__table_0, name=f'{name}_summary', parent=self.__node_3)
+                             show_hideout=True)
+        self.__node_4 = Node(self.__table_0, name=f'{name}_summary', parent=self.__node_3,
+                             store=False)
         self.__node_5 = Node(self.__prompt_5, name=f'{name}_continue', parent=self.__node_4, 
-                             show_instructions=True)
+                             show_hideout=True, store=False)
         self.__exit_node = DecoyNode(name=f'{name}_last-node')
 
         self.__bundle_0 = ExportHarvestFile(ratings_harvest, parent=self.__node_5)
@@ -62,10 +63,18 @@ class GenerateHarvest(NodeBundle):
         self.__prompt_5.options = {
             '1': Command(self._execute, value="Yes",
                          command=Command(lambda: self.__node_5.set_next(self.__bundle_0.entry_node))),
-            '2': Command(lambda: self.__node_5.set_next(self.__entry_node), value="No, re-enter responses")
+            '2': Command(lambda: self.__node_5.set_next(self.__entry_node), value="No, re-enter responses",
+                         command=Command(self.clear_all))
             }
 
         super().__init__(self.__entry_node, self.__exit_node, name=name, parent=parent)
+
+    def clear_all(self):
+        self.__prompt_0.clear()
+        self.__prompt_1.clear()
+        self.__prompt_2.clear()
+        self.__prompt_3.clear()
+        self.__prompt_4.clear()
 
     def _execute(self):
 

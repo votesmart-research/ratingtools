@@ -4,6 +4,8 @@ import os
 # external packages
 import pandas
 
+from vs_library.tools import pandas_functions
+
 
 class RatingHarvest:
 
@@ -42,8 +44,9 @@ class RatingHarvest:
 
     def export(self, filepath):
         try:
-            self.df.to_csv(filepath, index=False)
-            return True, f"File successfully exported to \'{os.path.abspath(filepath)}\'."
+            success, message = pandas_functions.to_spreadsheet(self.df, filepath)
+            return success, message
+
         except Exception as e:
             return False, str(e)
 
