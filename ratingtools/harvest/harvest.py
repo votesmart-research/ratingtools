@@ -9,6 +9,14 @@ from vs_library.tools import pandas_functions
 
 class RatingHarvest:
 
+    """An object to represent a rating harvest sheet
+    
+    Attributes
+    ----------
+    
+    
+    """
+
     def __init__(self):
 
         self.span = ''
@@ -23,16 +31,26 @@ class RatingHarvest:
         self.df = pandas.DataFrame(columns=self.columns)
 
 
-    def generate(self, specified_rows=100):
+    def generate(self, number_of_rows=100):
+
+        """
+        Generatea pandas.DataFrame by attributes specified in class
+
+        Parameters
+        ----------
+        number_of_rows : int, default=100
+            If pandas.DataFrame is empty, it will generate a dataframe with a specified number of rows
+        """
         
         df = pandas.DataFrame(columns=self.columns)
 
+        # only takes the first 3 columns
         for column in self.columns[:3]:
             if column in self.df.columns:
                 if any(self.df[column]):
                     df[column] = self.df[column]
 
-        number_of_rows = specified_rows if not(len(df)) else len(df)
+        number_of_rows = number_of_rows if not(len(df)) else len(df)
 
         df['span'] = [self.span] * number_of_rows
         df['sig_id'] = [self.sig_id] * number_of_rows
