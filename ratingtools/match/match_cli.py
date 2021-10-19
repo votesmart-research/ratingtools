@@ -8,8 +8,17 @@ from vs_library.tools import pandas_functions_cli
 
 
 class ImportRatingWorksheet(pandas_functions_cli.ImportSpreadsheet):
-
+    
+    """Imports the ratings worksheet file"""
+    
     def __init__(self, rating_worksheet, parent=None):
+
+        """
+        Parameters
+        ----------
+        rating_worksheet : match.RatingWorksheet
+            Controller of this NodeBundle
+        """
         
         name = 'import-rating-worksheet'
         self.rating_worksheet = rating_worksheet
@@ -21,8 +30,17 @@ class ImportRatingWorksheet(pandas_functions_cli.ImportSpreadsheet):
 
 
 class AnalyzeRatingWorksheet(NodeBundle):
-
+    
+    """Shows worksheet summary and allow user to retain or discard columns"""
+    
     def __init__(self, rating_worksheet, parent=None):
+
+        """
+        Parameters
+        ----------
+        rating_worksheet : match.RatingWorksheet
+            Controller of this NodeBundle
+        """
         
         name = 'analyze-rating-worksheet'
         self.rating_worksheet = rating_worksheet
@@ -81,8 +99,17 @@ class AnalyzeRatingWorksheet(NodeBundle):
 
 class SelectQueryForms(NodeBundle):
 
+    """Prompts user to select the appropriate query forms for candidate matching"""
+
     def __init__(self, query_tool, parent):
         
+        """
+        Parameters
+        ----------
+        query_tool : vs_library.database.QueryTool
+            Controller of this NodeBundle
+        """
+
         name = 'select-query'
         self.query_tool = query_tool
         
@@ -247,7 +274,7 @@ class RatingMatch(NodeBundle):
     def _execute(self):
         query_records = self.query_tool.results(as_format='records')
 
-        df, match_info = self.rating_worksheet.match_with(query_records)
+        df, match_info = self.rating_worksheet.match_records(query_records)
 
         self.__bundle_1.df = df
 

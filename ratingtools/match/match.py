@@ -7,31 +7,63 @@ from vs_library.tools import recordmatch, pandas_functions
 
 class RatingWorksheet:
 
+    """An object to represent a rating worksheet"""
+
     def __init__(self):
 
         self.columns = ['lastname', 'firstname', 'middlename', 'suffix', 'nickname',
                         'party', 'state', 'office', 'district',
                         'candidate_id', 'sig_rating', 'our_rating']
 
-        self.df = pandas.DataFrame(columns=self.columns)
+        self.__df = pandas.DataFrame(columns=self.columns)
 
         self.__columns_added = []
         self.__not_required_df = pandas.DataFrame()
 
     @property
+    def df(self):
+        return self.__df
+
+    @df.setter
+    def df(self, df):
+
+        """Sets the df by only taking required columns and add the necessary columns"""
+
+        columns_added = []
+        self.__df.drop(self.__df.index, inplace=True)
+        
+        for column in self.columns:
+            if column in df.columns:
+                self.__df[column] = df[column]
+            else:
+                columns_added.append(column)
+                self.__df[column] = [''] * len(df)
+
+        self.__columns_added = columns_added
+        self.__not_required_df = df[[c for c in df.columns if c not in self.columns]]
+
+    @property
     def not_required_columns(self):
+
+        """Returns a list of columns not required by the worksheet"""
+
         return list(self.__not_required_df.columns)
 
     @property
     def worksheet_info(self):
-        info = {'number_of_columns': len(self.df.columns),
-                'number_of_rows': len(self.df),
+
+        """Return a dictionary describing the structure of the worksheet"""
+
+        return {'number_of_columns': len(self.__df.columns),
+                'number_of_rows': len(self.__df),
                 'columns_added': ', '.join(map(str, self.__columns_added)),
                 'columns_not_required': ', '.join(map(str, self.__not_required_df.columns))}
-        return info
+
     
     def read(self, filepath):
         
+        """Imports a spreadsheet file and sets this instance's pandas.DataFrame"""
+
         try:
             df, message = pandas_functions.read_spreadsheet(filepath)
 
@@ -40,18 +72,7 @@ class RatingWorksheet:
             else:
                 pass
 
-            columns_added = []
-            self.df.drop(self.df.index, inplace=True)
-            
-            for column in self.columns:
-                if column in df.columns:
-                    self.df[column] = df[column]
-                else:
-                    columns_added.append(column)
-                    self.df[column] = [''] * len(df)
-
-            self.__columns_added = columns_added
-            self.__not_required_df = df[[c for c in df.columns if c not in self.columns]]
+            self.df = df
 
             return True, message
 
@@ -60,23 +81,34 @@ class RatingWorksheet:
 
     def concat_not_required(self, selected_columns=None):
         
+        """Concatenate self.__df with not required columns"""
+
         if not selected_columns:
-            self.df = pandas.concat([self.df, self.__not_required_df], axis=1)
+            self.__df = pandas.concat([self.__df, self.__not_required_df], axis=1)
         else:
-            self.df = pandas.concat([self.df, self.__not_required_df[selected_columns]], axis=1)
+            self.__df = pandas.concat([self.__df, self.__not_required_df[selected_columns]], axis=1)
 
 
     def generate(self, number_of_rows=100):
 
+        """
+        Generates pandas.DataFrame using columns from self.__df
+
+        Parameters
+        ----------
+        number_of_rows : int, default=100
+            If self.__df is empty, it will generate a dataframe with the specified number of rows
+        """
+
         df = pandas.DataFrame(columns=self.columns)
 
         for column in self.columns:
-            if column in self.df.columns:
-                if any(self.df[column]):
-                    df[column] = self.df[column]
+            if column in self.__df.columns:
+                if any(self.__df[column]):
+                    df[column] = self.__df[column]
 
         if len(df) and number_of_rows > len(df):
-            df_2 = pandas.DataFrame([[''] * len(self.columns)] * (number_of_rows-len(self.df)), columns=self.columns)
+            df_2 = pandas.DataFrame([[''] * len(self.columns)] * (number_of_rows-len(self.__df)), columns=self.columns)
             df = pandas.concat([df, df_2]).reset_index(drop=True)
 
         elif len(df) and number_of_rows < len(df):
@@ -85,16 +117,39 @@ class RatingWorksheet:
         else:
             pass
 
-        self.df = df
+        self.__df = df
 
-    def match_with(self, records, column_to_get='candidate_id'):
+    def match_records(self, records, column_to_get='candidate_id'):
 
-        if 'match_status' not in self.df.columns:
-            self.df['match_status'] = [''] * len(self.df)
+        """
+        Matches worksheet with other records to obtain the 'candidate_id'
+
+        This type of matching has a very specific process that is intended to maximize
+        the efficiency of matches that pertains to ratings worksheet. It works best
+        when match with a similar set of data.
+
+        Parameters
+        ----------
+        records : list
+            A list of dictionaries such that [record_1=dict(), record_2=dict()...]
+            Each dictionary should contain the same keys
+        
+        columns_to_get : list
+            Contains the list of column names that brings over to the self.__df from
+            matching records
+
+        Returns
+        -------
+        (pandas.DataFrame, dict)
+        """
+
+        if 'match_status' not in self.__df.columns:
+            self.__df['match_status'] = [''] * len(self.__df)
 
         matched_count = 0
         review_count = 0
 
+        # an inside funtion to determine if the 
         def apply_match(X, results, match_status):
             nonlocal matched_count
 
@@ -106,18 +161,20 @@ class RatingWorksheet:
             else:
                 return False
 
-        df_records = self.df.to_dict('records')
+        df_records = self.__df.to_dict('records')
         df_records_uniqueness = recordmatch.uniqueness(df_records)
 
         other_info = ['state', 'party', 'district', 'office']
         
         for X in tqdm(df_records):
-
+            
+            # lastnames are the crucial distinction of candidates
             LAST = recordmatch.match(records, X, column='lastname', threshold=1.0)
 
             if len(LAST) == 1:
-
+                # this section is to capture false positives
                 LAST_FUZZY_FIRST = recordmatch.match(LAST, X, column='firstname', threshold=0.7) 
+                
                 COMBINED_LAST = recordmatch.combined(LAST, X, other_info, df_records_uniqueness, 
                                                       threshold=0.6)
                 LAST_CROSS_FIRST = recordmatch.cross(LAST, X, 'firstname', ['nickname','middlename'], 
@@ -138,6 +195,7 @@ class RatingWorksheet:
             elif len(LAST) > 1:
 
                 LAST_FIRST = recordmatch.match(LAST, X, column='firstname', threshold=1.0)
+                # True of False, if the match applies, continue to next on loop
                 continuable = apply_match(X, LAST_FIRST, 'LAST_FIRST')
 
                 if not continuable and LAST_FIRST:
@@ -182,26 +240,22 @@ class RatingWorksheet:
             else:
                 X['match_status'] = ''
 
+        # pandas.DataFrame for easier parsing of data
         matched_df = pandas.DataFrame.from_records(df_records)
-
-        match_score = round(matched_count/len(self.df)*100, 2)
 
         dupe_index, dupes = pandas_functions.get_column_dupes(matched_df, column_to_get)
         blank_index, blanks = pandas_functions.get_column_blanks(matched_df, column_to_get)
 
+        # alter the match_status to reflect the error
         for d_i in dupe_index:
             matched_df.at[d_i, 'match_status'] = 'DUPLICATE'
         
         for b_i in blank_index:
             matched_df.at[b_i, 'match_status'] = 'UNMATCHED'
 
-        match_info = {'score': match_score,
+        match_info = {'score': round(matched_count/len(self.__df)*100, 2),
                       'duplicates': len(dupes),
                       'unmatched': len(blanks),
                       'review': review_count}
 
         return matched_df, match_info
-
-    
-    def __dict__(self):
-        return self.df.to_dict('records')

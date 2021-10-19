@@ -10,12 +10,24 @@ from vs_library.tools import pandas_functions_cli
 
 
 class GenerateHarvest(NodeBundle):
+
+    """Prompts user to enter information necessary to generate a harvest file"""
     
-    def __init__(self, ratings_harvest, ratings_worksheet=None, parent=None):
+    def __init__(self, rating_harvest, rating_worksheet=None, parent=None):
+
+        """
+        Parameters
+        ----------
+        rating_harvest : harvest.RatingHarvest
+            The controller of this NodeBundle
+        
+        rating_worksheet : harvest.RatingWorksheet, optional
+            An optional controller, if present, will transfer recognized columns to rating_harvest
+        """
 
         name = 'generate-harvest'
-        self.ratings_harvest = ratings_harvest
-        self.ratings_worksheet = ratings_worksheet
+        self.rating_harvest = rating_harvest
+        self.rating_worksheet = rating_worksheet
 
         # OBJECTS
         self.__prompt_0 = Prompt("What is the span or year of the ratings?", 
@@ -44,7 +56,7 @@ class GenerateHarvest(NodeBundle):
                              show_hideout=True, store=False)
         self.__exit_node = DecoyNode(name=f'{name}_last-node')
 
-        self.__bundle_0 = ExportHarvestFile(ratings_harvest, parent=self.__node_5)
+        self.__bundle_0 = ExportHarvestFile(rating_harvest, parent=self.__node_5)
 
         self.__bundle_0.adopt_node(self.__exit_node)
         self.__node_5.adopt(self.__entry_node)
@@ -69,7 +81,11 @@ class GenerateHarvest(NodeBundle):
 
         super().__init__(self.__entry_node, self.__exit_node, name=name, parent=parent)
 
+    # to prevent unintended edits
     def clear_all(self):
+
+        """Clear all user's inputs"""
+
         self.__prompt_0.clear()
         self.__prompt_1.clear()
         self.__prompt_2.clear()
@@ -78,17 +94,17 @@ class GenerateHarvest(NodeBundle):
 
     def _execute(self):
 
-        self.ratings_harvest.span = self.__prompt_0.responses
-        self.ratings_harvest.sig_id = self.__prompt_1.responses
-        self.ratings_harvest.usesigrating = self.__prompt_2.responses
-        self.ratings_harvest.ratingsession = self.__prompt_3.responses
-        self.ratings_harvest.ratingformat_id = self.__prompt_4.responses
+        self.rating_harvest.span = self.__prompt_0.responses
+        self.rating_harvest.sig_id = self.__prompt_1.responses
+        self.rating_harvest.usesigrating = self.__prompt_2.responses
+        self.rating_harvest.ratingsession = self.__prompt_3.responses
+        self.rating_harvest.ratingformat_id = self.__prompt_4.responses
 
-        if self.ratings_worksheet:
-            self.ratings_harvest.df = self.ratings_worksheet.df
-            self.ratings_harvest.generate()
+        if self.rating_worksheet:
+            self.rating_harvest.df = self.rating_worksheet.df
+            self.rating_harvest.generate()
         else:
-            self.ratings_harvest.generate()
+            self.rating_harvest.generate()
 
     def _populate_table(self):
         self.__table_0.table = [[textformat.apply('Span', emphases=['bold']), self.__prompt_0.responses],
@@ -99,21 +115,25 @@ class GenerateHarvest(NodeBundle):
     @staticmethod
     def is_validyear(x):
 
-        regex = r'(19[8-9][9]|2[0-9][0-9][0-9]|3000)[\-]' \
-                r'(19[8-9][9]|2[0-9][0-9][0-9]|3000)|' \
-                r'(19[8-9][9]|2[0-9][0-9][0-9]|3000)'
+        """Provide a verification to user's input of year"""
 
-        return re.fullmatch(regex, x), "Year must be between 1989 to 3000."
+        pattern = r'(19[8-9][9]|2[0-9][0-9][0-9]|3000)[\-]' \
+                  r'(19[8-9][9]|2[0-9][0-9][0-9]|3000)|' \
+                  r'(19[8-9][9]|2[0-9][0-9][0-9]|3000)'
+
+        return re.fullmatch(pattern, x), "Year must be between 1989 to 3000."
 
 
 class ExportHarvestFile(pandas_functions_cli.ExportSpreadsheet):
 
-    def __init__(self, ratings_harvest, parent=None):
+    """Harvest File can be saved to the user's local host"""
+
+    def __init__(self, rating_harvest, parent=None):
 
         name = 'export-ratings-harvest'
-        self.ratings_harvest = ratings_harvest
+        self.rating_harvest = rating_harvest
         
         super().__init__(name, parent)
     
     def _execute(self):
-        return super()._execute(controller=self.ratings_harvest.export)
+        return super()._execute(self.rating_harvest.export)
