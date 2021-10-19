@@ -5,8 +5,20 @@ from vs_library.cli.objects import Command, Display, Prompt, textformat
 
 
 class IntroToRatingTools(NodeBundle):
+
+    """The 'Main Menu' of RatingTools, lets user choose which feature to use"""
     
     def __init__(self, rm_bundle, rh_bundle, parent=None):
+
+        """
+        Parameters
+        ----------
+        rm_bundle : NodeBundle
+            First bundle that leads to ratings match
+
+        rh_bundle : NodeBundle
+            First bundle that leads to generating harvest file
+        """
 
         name = 'intro-to-rating-tools'
 

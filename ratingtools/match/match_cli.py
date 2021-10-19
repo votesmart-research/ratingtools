@@ -137,7 +137,19 @@ class SelectQueryForms(NodeBundle):
 
 class DatabaseConnection(NodeBundle):
 
+    """Add, Selects, Edits and Establish connection to Vote Smart Database"""
+
     def __init__(self, connection_manager, connection_adapter, parent=None):
+
+        """
+        Parameters
+        ----------
+        connection_manager : vs_library.database.ConnectionManager
+            Manages the selection and editing of connections
+
+        connection_adapter : vs_library.database.PostgreSQL
+            Responsible for establishing the connection
+        """
         
         name = 'rating-database-connection'
 
@@ -171,11 +183,13 @@ class DatabaseConnection(NodeBundle):
         self.__bundle_2.entry_node.clear_screen = True
         self.__bundle_3.entry_node.clear_screen = True
 
+        # traverse to AddConnection or SelectConnection NodeBundle
         self.__prompt_0.options = {
             '1': Command(lambda: self.__node_0.set_next(self.__bundle_0.entry_node), value="Create a New Connection"),
             '2': Command(lambda: self.__node_0.set_next(self.__bundle_1.entry_node), value="Use an Existing Connection")
             }
 
+        # traverse to EstablishConnection or EditConnection NodeBundle
         self.__prompt_1.options = {
             '1': Command(lambda: self.__node_1.set_next(self.__bundle_2.entry_node), value="Yes, certainly"),
             '2': Command(lambda: self.__node_1.set_next(self.__bundle_3.entry_node), value="Edit Connection"),
@@ -207,20 +221,35 @@ class DatabaseConnection(NodeBundle):
 
 class RatingMatch(NodeBundle):
 
-    def __init__(self, query_tool, rating_worksheet, rating_harvest, query_form=None, parent=None):
+    """Performs match on rating worksheet with query results"""
+
+    def __init__(self, rating_worksheet, query_tool, query_forms=None, parent=None):
+
+        """
+        Parameters
+        ----------
+        rating_worksheet : match.RatingWorksheet
+            Controller of this NodeBundle
+
+        query_tool : vs_library.database.QueryTool
+            Controller that contains the results of query
+
+        query_forms : NodeBundle, optional
+            A bundle to select query forms or a bundle before a query is executed.
+            The purpose of having this bundle is so that user can change the query results
+            before matching
+        """
         
         name = 'rating-match'
-        self.query_tool = query_tool
         self.rating_worksheet = rating_worksheet
-        self.rating_harvest = rating_harvest
-
+        self.query_tool = query_tool
+        
         # OBJECTS
         self.__prompt_0 = Prompt("Things are set. Commence rating match?")
         self.__display_0 = Display("Begin match...", Command(self._execute))
         self.__table_0 = Table([], header=False)
         self.__display_1 = Display("Incomplete Matches detected. Query Results are required to be exported.")
         self.__prompt_1 = Prompt("Matches are free of errors. Do you want to export query results?")
-        self.__prompt_2 = Prompt("Harvest file can be generated. Proceed?")
         
         # NODES
         self.__entry_node = Node(self.__prompt_0, name=f'{name}_commence',
@@ -260,14 +289,10 @@ class RatingMatch(NodeBundle):
             '2': Command(lambda: self.__node_3.set_next(self.__node_4), value="No")
             }
 
-        self.__prompt_2.options = {
-            '1': Command(lambda: self.__node_4.set_next(self.__bundle_3.entry_node), value="Yes"),
-            '2': Command(lambda: self.__node_4.set_next(self.__exit_node), value="No")
-            }
-
-        if query_form:
-            self.__entry_node.adopt(query_form.entry_node)
-            self.__prompt_0.options['R'] = Command(lambda: self.__entry_node.set_next(query_form.entry_node), value="Return to Query Edit")
+        # allow user to return to selecting query forms
+        if query_forms:
+            self.__entry_node.adopt(query_forms.entry_node)
+            self.__prompt_0.options['R'] = Command(lambda: self.__entry_node.set_next(query_forms.entry_node), value="Return to Query Edit")
 
         super().__init__(self.__entry_node, self.__exit_node, name=name, parent=parent)
 
@@ -286,13 +311,21 @@ class RatingMatch(NodeBundle):
         if not(match_info['score'] == 100 and match_info['duplicates'] == 0 and match_info['review'] == 0):
             self.__bundle_1.set_next_node(self.__node_2)
         else:
-            self.rating_harvest.df = df
             self.__bundle_1.set_next_node(self.__node_3)
 
 
 class ExportMatchedDf(pandas_functions_cli.ExportSpreadsheet):
 
+    """Matched results can be save as a spreadsheet to the user's local host"""
+
     def __init__(self, df, parent=None):
+
+        """
+        Parameter
+        ---------
+        df : pandas.DataFrame
+            This pandas.DataFrame is the result of the matched ratings worksheet
+        """
 
         name = 'export-matched-df'
 
