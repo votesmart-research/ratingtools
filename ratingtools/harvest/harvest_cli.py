@@ -126,7 +126,7 @@ class GenerateHarvest(NodeBundle):
 
 class ExportHarvestFile(pandas_functions_cli.ExportSpreadsheet):
 
-    """Harvest File can be saved to the user's local host"""
+    """Harvest file can be saved to the user's local host"""
 
     def __init__(self, rating_harvest, parent=None):
 
