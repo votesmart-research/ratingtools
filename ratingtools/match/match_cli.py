@@ -223,7 +223,7 @@ class RatingMatch(NodeBundle):
 
     """Performs match on rating worksheet with query results"""
 
-    def __init__(self, rating_worksheet, query_tool, query_forms=None, parent=None):
+    def __init__(self, rating_worksheet, query_tool, pandas_matcher, query_forms=None, parent=None):
 
         """
         Parameters
@@ -234,6 +234,9 @@ class RatingMatch(NodeBundle):
         query_tool : vs_library.database.QueryTool
             Controller that contains the results of query
 
+        pandas_matcher: vs_library.tools.pandas_functions.PandasMatcher
+            Controller that manages matching with pandas
+
         query_forms : NodeBundle, optional
             A bundle to select query forms or a bundle before a query is executed.
             The purpose of having this bundle is so that user can change the query results
@@ -243,35 +246,32 @@ class RatingMatch(NodeBundle):
         name = 'rating-match'
         self.rating_worksheet = rating_worksheet
         self.query_tool = query_tool
+        self.pandas_matcher = pandas_matcher
         
         # OBJECTS
-        self.__prompt_0 = Prompt("Things are set. Commence rating match?")
-        self.__display_0 = Display("Begin match...", Command(self._execute))
+        self.__prompt_0 = Prompt("Things are set. Which matching tool would you like to use?")
+        self.__prompt_1 = Prompt(textformat.apply("Pandas Matcher Menu", emphases=['bold', 'underline']))
+        self.__display_0 = Display("Begin match...", command=Command(self._execute))
         self.__table_0 = Table([], header=False)
-        self.__display_1 = Display("Incomplete Matches detected. Query Results are required to be exported.")
-        self.__prompt_1 = Prompt("Matches are free of errors. Do you want to export query results?")
         
         # NODES
-        self.__entry_node = Node(self.__prompt_0, name=f'{name}_commence',
+        self.__entry_node = Node(self.__prompt_0, name=f'{name}_choose-tool',
                              show_hideout=True)
+        
         self.__node_0 = Node(self.__display_0, name=f'{name}_execute', parent=self.__entry_node,
                              show_hideout=True, clear_screen=True, store=False)
         self.__node_1 = Node(self.__table_0, name=f'{name}_results', parent=self.__node_0, 
                              acknowledge=True)
-        self.__node_2 = Node(self.__display_1, name=f'{name}_query-incomplete', 
-                             acknowledge=True, clear_screen=True)
-        self.__node_3 = Node(self.__prompt_1, name=f'{name}_query-complete')
+        self.__node_2 = Node(self.__prompt_1, name=f"{name}_pandas-matcher", parent=self.__entry_node,
+                             clear_screen=True)
 
-        self.__exit_node = DecoyNode(name=f'{name}_last-node', parent=self.__node_3)
-        
+        self.__bundle_0 = pandas_functions_cli.PMSettings(pandas_matcher, parent=self.__node_2)
         self.__bundle_1 = ExportMatchedDf(None, parent=self.__node_1)
-        self.__bundle_2 = database_cli.ExportQueryResults(self.query_tool, parent=self.__node_2)
+        self.__bundle_2 = database_cli.ExportQueryResults(self.query_tool, parent=self.__bundle_1)
 
-        self.__node_3.adopt(self.__bundle_2.entry_node)
-
-        self.__bundle_1.adopt_node(self.__node_2)
-        self.__bundle_1.adopt_node(self.__node_3)
-        self.__bundle_2.adopt_node(self.__exit_node)
+        self.__exit_node = DecoyNode(name=f'{name}_last-node', parent=self.__bundle_2.exit_node)
+        
+        self.__node_2.adopt(self.__node_0)
 
         # CONFIGURATIONS
         self.__bundle_1.entry_node.clear_screen = True
@@ -281,13 +281,15 @@ class RatingMatch(NodeBundle):
         self.__table_0.description = "Above shows the results of the match"
 
         self.__prompt_0.options = {
-            '1': Command(lambda: self.__entry_node.set_next(self.__node_0), value="Yes")
+            '1': Command(lambda: self.__entry_node.set_next(self.__node_0), value="Record Match"),
+            '2': Command(lambda: self.__entry_node.set_next(self.__node_2), value="Pandas Matcher",
+                         command=Command(self._set_pandas_matcher))
             }
         
         self.__prompt_1.options = {
-            '1': Command(lambda: self.__node_3.set_next(self.__bundle_2.entry_node), value="Yes"),
-            '2': Command(lambda: self.__node_3.set_next(self.__node_4), value="No")
-            }
+            '1': Command(lambda: self.__node_2.set_next(self.__bundle_0.entry_node), value="Settings"),
+            'M': Command(lambda: self.__node_2.set_next(self.__node_0), value="Commence Match")
+        }
 
         # allow user to return to selecting query forms
         if query_forms:
@@ -297,21 +299,24 @@ class RatingMatch(NodeBundle):
         super().__init__(self.__entry_node, self.__exit_node, name=name, parent=parent)
 
     def _execute(self):
-        query_records = self.query_tool.results(as_format='records')
-
-        df, match_info = self.rating_worksheet.match_records(query_records)
+    
+        if self.__prompt_0.responses == '1':
+            query_records = self.query_tool.results(as_format='records')
+            df, match_info = self.rating_worksheet.match_records(query_records)
+            
+        elif self.__prompt_0.responses == '2':
+            df, match_info = self.pandas_matcher.match()
+        else:
+            return
 
         self.__bundle_1.df = df
 
-        self.__table_0.table = [['Match Score', f"{match_info['score']}%"],
-                                ['Duplicate Rows', match_info['duplicates']],
-                                ['Unmatched Rows', match_info['unmatched']],
-                                ['Rows Need Review', match_info['review']]]
+        for k, v in match_info.items():
+            self.__table_0.table.append([k, str(v)])
 
-        if not(match_info['score'] == 100 and match_info['duplicates'] == 0 and match_info['review'] == 0):
-            self.__bundle_1.set_next_node(self.__node_2)
-        else:
-            self.__bundle_1.set_next_node(self.__node_3)
+    def _set_pandas_matcher(self):
+        self.pandas_matcher.df_to = self.rating_worksheet.df
+        self.pandas_matcher.df_from = self.query_tool.results(as_format='pandas_df')
 
 
 class ExportMatchedDf(pandas_functions_cli.ExportSpreadsheet):
