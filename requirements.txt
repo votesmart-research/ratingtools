@@ -1,4 +1,4 @@
-pandas==1.3.3
-tqdm==4.62.3
+pandas
+tqdm
 
 git+ssh://git@github.com/votesmart-projects/vs_library.git#egg=vs_library

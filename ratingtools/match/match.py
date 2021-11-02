@@ -146,17 +146,17 @@ class RatingWorksheet:
         if 'match_status' not in self.__df.columns:
             self.__df['match_status'] = [''] * len(self.__df)
 
-        matched_count = 0
-        review_count = 0
+        match_info = {'Rows Matched': 0,
+                      'Needs Review': 0}
 
         # an inside funtion to determine if the 
         def apply_match(X, results, match_status):
-            nonlocal matched_count
+            nonlocal match_info
 
             if len(results) == 1:
                 X[column_to_get] = results[0][column_to_get]
                 X['match_status'] = match_status
-                matched_count += 1
+                match_info['Rows Matched'] += 1
                 return True
             else:
                 return False
@@ -188,7 +188,7 @@ class RatingWorksheet:
                     apply_match(X, LAST_CROSS_FIRST, 'LAST_CROSS-FIRST')
                 else:
                     apply_match(X, LAST, 'REVIEW')
-                    review_count += 1
+                    match_info['Needs Review'] += 1
                 
                 continue
 
@@ -241,21 +241,21 @@ class RatingWorksheet:
                 X['match_status'] = ''
 
         # pandas.DataFrame for easier parsing of data
-        matched_df = pandas.DataFrame.from_records(df_records)
+        df_matched = pandas.DataFrame.from_records(df_records)
 
-        dupe_index, dupes = pandas_functions.get_column_dupes(matched_df, column_to_get)
-        blank_index, blanks = pandas_functions.get_column_blanks(matched_df, column_to_get)
+        dupe_index, dupes = pandas_functions.get_column_dupes(df_matched, column_to_get)
+        blank_index, blanks = pandas_functions.get_column_blanks(df_matched, column_to_get)
 
         # alter the match_status to reflect the error
         for d_i in dupe_index:
-            matched_df.at[d_i, 'match_status'] = 'DUPLICATE'
+            df_matched.at[d_i, 'match_status'] = 'DUPLICATE'
         
         for b_i in blank_index:
-            matched_df.at[b_i, 'match_status'] = 'UNMATCHED'
+            df_matched.at[b_i, 'match_status'] = 'UNMATCHED'
 
-        match_info = {'score': round(matched_count/len(self.__df)*100, 2),
-                      'duplicates': len(dupes),
-                      'unmatched': len(blanks),
-                      'review': review_count}
+        rows_matched = match_info['Rows Matched']
+        match_info['Duplicates'] = len(dupes)
+        match_info['Unmatched'] = len(blanks)
+        match_info['Match Score'] = round(rows_matched/len(self.__df)*100,2)
 
-        return matched_df, match_info
+        return df_matched, match_info
