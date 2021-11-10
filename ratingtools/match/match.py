@@ -2,7 +2,7 @@
 # external packages
 import pandas
 from tqdm import tqdm
-from vs_library.tools import recordmatch, pandas_functions
+from vs_library.tools import recordmatch, pandas_extension
 
 
 class RatingWorksheet:
@@ -65,7 +65,7 @@ class RatingWorksheet:
         """Imports a spreadsheet file and sets this instance's pandas.DataFrame"""
 
         try:
-            df, message = pandas_functions.read_spreadsheet(filepath)
+            df, message = pandas_extension.read_spreadsheet(filepath)
 
             if df.empty:
                 return False, message
@@ -243,8 +243,8 @@ class RatingWorksheet:
         # pandas.DataFrame for easier parsing of data
         df_matched = pandas.DataFrame.from_records(df_records)
 
-        dupe_index, dupes = pandas_functions.get_column_dupes(df_matched, column_to_get)
-        blank_index, blanks = pandas_functions.get_column_blanks(df_matched, column_to_get)
+        dupe_index, dupes = pandas_extension.get_column_dupes(df_matched, column_to_get)
+        blank_index, blanks = pandas_extension.get_column_blanks(df_matched, column_to_get)
 
         # alter the match_status to reflect the error
         for d_i in dupe_index:

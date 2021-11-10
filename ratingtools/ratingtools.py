@@ -11,7 +11,7 @@ from harvest import harvest, harvest_cli
 # external packages
 from vs_library import database, cli
 from vs_library.database import database_cli
-from vs_library.tools import pandas_functions
+from vs_library.tools import pandas_extension
 
 
 def main():
@@ -23,7 +23,7 @@ def main():
     connection_manager = database.ConnectionManager(os.path.dirname(__file__))
     connection_adapter = database.PostgreSQL(None)
     query_tool = database.QueryTool(connection_adapter)
-    pandas_matcher = pandas_functions.PandasMatcher()
+    pandas_matcher = pandas_extension.PandasMatcher()
 
     # INTERFACE / CONTROLLER
     import_rating_worksheet_match = match_cli.ImportRatingWorksheet(rating_worksheet_match)

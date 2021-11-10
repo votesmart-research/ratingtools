@@ -6,7 +6,7 @@ import re
 from vs_library.cli import Node, NodeBundle, DecoyNode, textformat
 from vs_library.cli.objects import Command, Prompt, Table
 from vs_library.vsdb import references
-from vs_library.tools import pandas_functions_cli
+from vs_library.tools import pandas_extension_cli
 
 
 class GenerateHarvest(NodeBundle):
@@ -124,7 +124,7 @@ class GenerateHarvest(NodeBundle):
         return re.fullmatch(pattern, x), "Year must be between 1989 to 3000."
 
 
-class ExportHarvestFile(pandas_functions_cli.ExportSpreadsheet):
+class ExportHarvestFile(pandas_extension_cli.ExportSpreadsheet):
 
     """Harvest file can be saved to the user's local host"""
 
