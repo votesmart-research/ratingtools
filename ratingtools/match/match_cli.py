@@ -4,10 +4,10 @@ from vs_library.cli import Node, NodeBundle, DecoyNode, textformat
 from vs_library.cli.objects import Command, Display, Prompt, Table
 from vs_library.vsdb import queries_cli
 from vs_library.database import database_cli
-from vs_library.tools import pandas_functions_cli
+from vs_library.tools import pandas_extension_cli
 
 
-class ImportRatingWorksheet(pandas_functions_cli.ImportSpreadsheet):
+class ImportRatingWorksheet(pandas_extension_cli.ImportSpreadsheet):
     
     """Imports the ratings worksheet file"""
     
@@ -234,7 +234,7 @@ class RatingMatch(NodeBundle):
         query_tool : vs_library.database.QueryTool
             Controller that contains the results of query
 
-        pandas_matcher: vs_library.tools.pandas_functions.PandasMatcher
+        pandas_matcher: vs_library.tools.pandas_extension.PandasMatcher
             Controller that manages matching with pandas
 
         query_forms : NodeBundle, optional
@@ -265,7 +265,7 @@ class RatingMatch(NodeBundle):
         self.__node_2 = Node(self.__prompt_1, name=f"{name}_pandas-matcher", parent=self.__entry_node,
                              clear_screen=True)
 
-        self.__bundle_0 = pandas_functions_cli.PMSettings(pandas_matcher, parent=self.__node_2)
+        self.__bundle_0 = pandas_extension_cli.PMSettings(pandas_matcher, parent=self.__node_2)
         self.__bundle_1 = ExportMatchedDf(None, parent=self.__node_1)
         self.__bundle_2 = database_cli.ExportQueryResults(self.query_tool, parent=self.__bundle_1)
 
@@ -319,7 +319,7 @@ class RatingMatch(NodeBundle):
         self.pandas_matcher.df_from = self.query_tool.results(as_format='pandas_df')
 
 
-class ExportMatchedDf(pandas_functions_cli.ExportSpreadsheet):
+class ExportMatchedDf(pandas_extension_cli.ExportSpreadsheet):
 
     """Matched results can be save as a spreadsheet to the user's local host"""
 

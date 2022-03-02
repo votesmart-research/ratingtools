@@ -4,7 +4,7 @@ import os
 # external packages
 import pandas
 
-from vs_library.tools import pandas_functions
+from vs_library.tools import pandas_extension
 
 
 class RatingHarvest:
@@ -62,7 +62,7 @@ class RatingHarvest:
 
     def export(self, filepath):
         try:
-            success, message = pandas_functions.to_spreadsheet(self.df, filepath)
+            success, message = pandas_extension.to_spreadsheet(self.df, filepath)
             return success, message
 
         except Exception as e:
