@@ -12,7 +12,7 @@ class RatingWorksheet:
     def __init__(self):
 
         self.columns = ['lastname', 'firstname', 'middlename', 'suffix', 'nickname',
-                        'party', 'state', 'office', 'district',
+                        'party', 'state', 'state_id','office', 'district',
                         'candidate_id', 'sig_rating', 'our_rating']
 
         self.__df = pandas.DataFrame(columns=self.columns)
