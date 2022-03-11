@@ -293,8 +293,8 @@ class RatingMatch(NodeBundle):
 
         # allow user to return to selecting query forms
         if query_forms:
-            self.__entry_node.adopt(query_forms.entry_node)
-            self.__prompt_0.options['R'] = Command(lambda: self.__entry_node.set_next(query_forms.entry_node), value="Return to Query Edit")
+            self.__node_2.adopt(query_forms.entry_node)
+            self.__prompt_1.options['R'] = Command(lambda: self.__node_2.set_next(query_forms.entry_node), value="Return to Query Edit")
 
         super().__init__(self.__entry_node, self.__exit_node, name=name, parent=parent)
 
