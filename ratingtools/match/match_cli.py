@@ -310,6 +310,11 @@ class RatingMatch(NodeBundle):
             return
 
         self.__bundle_1.df = df
+        self._populate_table(match_info)
+
+    def _populate_table(self, match_info):
+
+        self.__table_0.clear()
 
         for k, v in match_info.items():
             self.__table_0.table.append([k, str(v)])
