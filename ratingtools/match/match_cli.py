@@ -251,7 +251,7 @@ class RatingMatch(NodeBundle):
         # OBJECTS
         self.__prompt_0 = Prompt("Things are set. Which matching tool would you like to use?")
         self.__prompt_1 = Prompt(textformat.apply("Pandas Matcher Menu", emphases=['bold', 'underline']))
-        self.__display_0 = Display("Begin match...", command=Command(self._execute))
+        self.__display_0 = Display("Matching in progress...", command=Command(self._execute))
         self.__table_0 = Table([], header=False)
         
         # NODES
