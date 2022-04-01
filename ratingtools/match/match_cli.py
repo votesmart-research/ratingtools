@@ -7,7 +7,7 @@ from vs_library.database import database_cli
 from vs_library.tools import pandas_extension_cli
 
 
-class ImportRatingWorksheet(pandas_extension_cli.ImportSpreadsheet):
+class ImportRatingWorksheet(pandas_extension_cli.ImportSpreadsheets):
     
     """Imports the ratings worksheet file"""
     
