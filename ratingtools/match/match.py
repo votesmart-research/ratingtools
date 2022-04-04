@@ -69,7 +69,7 @@ class RatingWorksheet:
             messages = []
 
             for filepath in filepaths:
-                df, message = pandas_extension.read_spreadsheet(filepath)
+                df, message = pandas_extension.read_spreadsheet(filepath, dtype=str)
                 dfs.append(df)
                 messages.append(message)
 
