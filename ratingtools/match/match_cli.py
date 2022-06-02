@@ -7,7 +7,7 @@ from vs_library.database import database_cli
 from vs_library.tools import pandas_extension_cli
 
 
-class ImportRatingWorksheet(pandas_extension_cli.ImportSpreadsheet):
+class ImportRatingWorksheet(pandas_extension_cli.ImportSpreadsheets):
     
     """Imports the ratings worksheet file"""
     
@@ -251,7 +251,7 @@ class RatingMatch(NodeBundle):
         # OBJECTS
         self.__prompt_0 = Prompt("Things are set. Which matching tool would you like to use?")
         self.__prompt_1 = Prompt(textformat.apply("Pandas Matcher Menu", emphases=['bold', 'underline']))
-        self.__display_0 = Display("Begin match...", command=Command(self._execute))
+        self.__display_0 = Display("Matching in progress...", command=Command(self._execute))
         self.__table_0 = Table([], header=False)
         
         # NODES
@@ -293,8 +293,8 @@ class RatingMatch(NodeBundle):
 
         # allow user to return to selecting query forms
         if query_forms:
-            self.__entry_node.adopt(query_forms.entry_node)
-            self.__prompt_0.options['R'] = Command(lambda: self.__entry_node.set_next(query_forms.entry_node), value="Return to Query Edit")
+            self.__node_2.adopt(query_forms.entry_node)
+            self.__prompt_1.options['R'] = Command(lambda: self.__node_2.set_next(query_forms.entry_node), value="Return to Query Edit")
 
         super().__init__(self.__entry_node, self.__exit_node, name=name, parent=parent)
 
@@ -310,6 +310,11 @@ class RatingMatch(NodeBundle):
             return
 
         self.__bundle_1.df = df
+        self._populate_table(match_info)
+
+    def _populate_table(self, match_info):
+
+        self.__table_0.clear()
 
         for k, v in match_info.items():
             self.__table_0.table.append([k, str(v)])

@@ -60,21 +60,27 @@ class RatingWorksheet:
                 'columns_not_required': ', '.join(map(str, self.__not_required_df.columns))}
 
     
-    def read(self, filepath):
+    def read(self, filepaths):
         
         """Imports a spreadsheet file and sets this instance's pandas.DataFrame"""
 
         try:
-            df, message = pandas_extension.read_spreadsheet(filepath)
+            dfs = []
+            messages = []
 
-            if df.empty:
-                return False, message
-            else:
-                pass
+            for filepath in filepaths:
+                df, message = pandas_extension.read_spreadsheet(filepath, dtype=str)
+                dfs.append(df)
+                messages.append(message)
 
-            self.df = df
+            concat_df = pandas.concat(dfs, ignore_index=True)
 
-            return True, message
+            if concat_df.empty:
+                return False, "\n".join(messages)
+
+            self.df = concat_df
+
+            return True, "\n".join(messages)
 
         except Exception as e:
             return False, str(e)
