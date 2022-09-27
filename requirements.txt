@@ -1,4 +1,4 @@
 pandas
 tqdm
 
-#git+ssh://git@github.com/votesmart-projects/vs_library.git#egg=vs_library
+git+ssh://git@github.com/votesmart-projects/vs_library.git#egg=vs_library
