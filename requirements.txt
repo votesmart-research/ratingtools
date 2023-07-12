@@ -1,4 +1,12 @@
 pandas
-tqdm
+pg8000
+rapidfuzz
+python-Levenshtein
+tabulate
+PySide6
+odfpy
+openpyxl
+xlrd
 
 git+ssh://git@github.com/votesmart-projects/vs_library.git#egg=vs_library
+git+ssh://git@github.com/votesmart-projects/tabular_matcher.git#egg=tabular_matcher

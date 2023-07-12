@@ -1,3 +1,4 @@
+import pandas
 
 # external packages
 from vs_library.cli import Node, NodeBundle, DecoyNode, textformat
@@ -6,6 +7,7 @@ from vs_library.vsdb import queries_cli
 from vs_library.database import database_cli
 from vs_library.tools import pandas_extension_cli
 
+from tqdm import tqdm
 
 class ImportRatingWorksheet(pandas_extension_cli.ImportSpreadsheets):
     
@@ -81,7 +83,7 @@ class AnalyzeRatingWorksheet(NodeBundle):
         info = self.rating_worksheet.worksheet_info
         self.__table_0.table = [[textformat.apply('Number of Columns', emphases=['bold']), info['number_of_columns']],
                                 [textformat.apply('Number of Rows', emphases=['bold']), info['number_of_rows']],
-                                [textformat.apply('Columns Added', emphases=['bold']), info['columns_added']],
+                                # [textformat.apply('Columns Added', emphases=['bold']), info['columns_added']],
                                 [textformat.apply('Columns not Required', emphases=['bold']), info['columns_not_required']]]
 
         if self.rating_worksheet.not_required_columns:
@@ -223,7 +225,12 @@ class RatingMatch(NodeBundle):
 
     """Performs match on rating worksheet with query results"""
 
-    def __init__(self, rating_worksheet, query_tool, pandas_matcher, query_forms=None, parent=None):
+    def __init__(self, 
+                 rating_worksheet, 
+                 query_tool, 
+                 tabular_matcher, 
+                 query_forms=None, 
+                 parent=None):
 
         """
         Parameters
@@ -234,8 +241,8 @@ class RatingMatch(NodeBundle):
         query_tool : vs_library.database.QueryTool
             Controller that contains the results of query
 
-        pandas_matcher: vs_library.tools.pandas_extension.PandasMatcher
-            Controller that manages matching with pandas
+        tabular_matcher: tabular_matcher.matcher.TabularMatcher
+            Controller that manages matching with tabular formatted data
 
         query_forms : NodeBundle, optional
             A bundle to select query forms or a bundle before a query is executed.
@@ -246,13 +253,15 @@ class RatingMatch(NodeBundle):
         name = 'rating-match'
         self.rating_worksheet = rating_worksheet
         self.query_tool = query_tool
-        self.pandas_matcher = pandas_matcher
+        self.tabular_matcher = tabular_matcher
         
         # OBJECTS
         self.__prompt_0 = Prompt("Things are set. Which matching tool would you like to use?")
-        self.__prompt_1 = Prompt(textformat.apply("Pandas Matcher Menu", emphases=['bold', 'underline']))
+        self.__prompt_1 = Prompt(textformat.apply("Tabular Matcher Menu", emphases=['bold', 'underline']))
         self.__display_0 = Display("Matching in progress...", command=Command(self._execute))
         self.__table_0 = Table([], header=False)
+
+        self._set_tabular_matcher()
         
         # NODES
         self.__entry_node = Node(self.__prompt_0, name=f'{name}_choose-tool',
@@ -262,10 +271,10 @@ class RatingMatch(NodeBundle):
                              show_hideout=True, clear_screen=True, store=False)
         self.__node_1 = Node(self.__table_0, name=f'{name}_results', parent=self.__node_0, 
                              acknowledge=True)
-        self.__node_2 = Node(self.__prompt_1, name=f"{name}_pandas-matcher", parent=self.__entry_node,
+        self.__node_2 = Node(self.__prompt_1, name=f"{name}_tabular-matcher", parent=self.__entry_node,
                              clear_screen=True)
 
-        self.__bundle_0 = pandas_extension_cli.PMSettings(pandas_matcher, parent=self.__node_2)
+        self.__bundle_0 = pandas_extension_cli.TBSettings(tabular_matcher, parent=self.__node_2)
         self.__bundle_1 = ExportMatchedDf(None, parent=self.__node_1)
         self.__bundle_2 = database_cli.ExportQueryResults(self.query_tool, parent=self.__bundle_1)
 
@@ -282,8 +291,8 @@ class RatingMatch(NodeBundle):
 
         self.__prompt_0.options = {
             '1': Command(lambda: self.__entry_node.set_next(self.__node_0), value="Record Match"),
-            '2': Command(lambda: self.__entry_node.set_next(self.__node_2), value="Pandas Matcher",
-                         command=Command(self._set_pandas_matcher))
+            '2': Command(lambda: self.__entry_node.set_next(self.__node_2), value="Tabular Matcher",
+                         command=Command(self._set_tabular_matcher))
             }
         
         self.__prompt_1.options = {
@@ -305,7 +314,9 @@ class RatingMatch(NodeBundle):
             df, match_info = self.rating_worksheet.match_records(query_records)
             
         elif self.__prompt_0.responses == '2':
-            df, match_info = self.pandas_matcher.match()
+            p_bar = tqdm(total=len(self.rating_worksheet.df))
+            records, match_info = self.tabular_matcher.match(update_func=lambda: p_bar.update(1))
+            df = pandas.DataFrame.from_dict(records, orient='index')
         else:
             return
 
@@ -319,9 +330,12 @@ class RatingMatch(NodeBundle):
         for k, v in match_info.items():
             self.__table_0.table.append([k, str(v)])
 
-    def _set_pandas_matcher(self):
-        self.pandas_matcher.df_to = self.rating_worksheet.df
-        self.pandas_matcher.df_from = self.query_tool.results(as_format='pandas_df')
+    def _set_tabular_matcher(self):
+
+        self.tabular_matcher.x_records = self.rating_worksheet.df.to_dict('index')
+        self.tabular_matcher.y_records = self.query_tool.results(as_format='records')
+        print(self.tabular_matcher.y_records)
+        self.tabular_matcher.config.populate()
 
 
 class ExportMatchedDf(pandas_extension_cli.ExportSpreadsheet):

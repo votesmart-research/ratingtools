@@ -29,17 +29,17 @@ class RatingWorksheet:
 
         """Sets the df by only taking required columns and add the necessary columns"""
 
-        columns_added = []
-        self.__df.drop(self.__df.index, inplace=True)
-        
-        for column in self.columns:
-            if column in df.columns:
-                self.__df[column] = df[column]
-            else:
-                columns_added.append(column)
-                self.__df[column] = [''] * len(df)
 
-        self.__columns_added = columns_added
+        # self.__df.drop(self.__df.index, inplace=True)
+        # columns_added = []
+        # for column in self.columns:
+        #     if column in df.columns:
+        #         self.__df[column] = df[column]
+        #     else:
+        #         columns_added.append(column)
+        #         self.__df[column] = [''] * len(df)
+        # self.__columns_added = columns_added
+        self.__df = df
         self.__not_required_df = df[[c for c in df.columns if c not in self.columns]]
 
     @property
@@ -56,7 +56,7 @@ class RatingWorksheet:
 
         return {'number_of_columns': len(self.__df.columns),
                 'number_of_rows': len(self.__df),
-                'columns_added': ', '.join(map(str, self.__columns_added)),
+                # 'columns_added': ', '.join(map(str, self.__columns_added)),
                 'columns_not_required': ', '.join(map(str, self.__not_required_df.columns))}
 
     
