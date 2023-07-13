@@ -29,14 +29,16 @@ def main():
     pandas_matcher = pandas_extension.PandasMatcher()
     tabular_matcher = matcher.TabularMatcher()
 
+    clean = lambda x: str(x).strip().lower()
+
     tabular_matcher.config.scorers_by_column.SCORERS.update(
-                                        {'Base': lambda x,y: fuzz.ratio(x,y),
-                                         'Partial': lambda x,y: fuzz.partial_ratio(x,y),
-                                         'Token Set': lambda x,y: fuzz.token_set_ratio(x,y),
-                                         'Partial Token Set': lambda x,y: fuzz.partial_token_set_ratio(x,y),
-                                         'Token Sort': lambda x,y: fuzz.token_sort_ratio(x,y),
-                                         'Partial Token Sort': lambda x,y: fuzz.partial_token_sort_ratio(x,y),
-                                         'Weighted': lambda x,y: fuzz.WRatio(x,y),
+                                        {'Base': lambda x,y: fuzz.ratio(clean(x), clean(y)),
+                                      'Partial': lambda x,y: fuzz.partial_ratio(clean(x), clean(y)),
+                                    'Token Set': lambda x,y: fuzz.token_set_ratio(clean(x), clean(y)),
+                            'Partial Token Set': lambda x,y: fuzz.partial_token_set_ratio(clean(x), clean(y)),
+                                   'Token Sort': lambda x,y: fuzz.token_sort_ratio(clean(x), clean(y)),
+                           'Partial Token Sort': lambda x,y: fuzz.partial_token_sort_ratio(clean(x), clean(y)),
+                                     'Weighted': lambda x,y: fuzz.WRatio(clean(x), clean(y)),
                                         })
     tabular_matcher.config.scorers_by_column.default = 'Weighted'
 
