@@ -256,7 +256,7 @@ class RatingMatch(NodeBundle):
         self.tabular_matcher = tabular_matcher
         
         # OBJECTS
-        self.__prompt_0 = Prompt("Things are set. Which matching tool would you like to use?")
+        self.__prompt_0 = Prompt("Things are set. What matching tool you would like to use?")
         self.__prompt_1 = Prompt(textformat.apply("Tabular Matcher Menu", emphases=['bold', 'underline']))
         self.__display_0 = Display("Matching in progress...", command=Command(self._execute))
         self.__table_0 = Table([], header=False)
@@ -290,9 +290,9 @@ class RatingMatch(NodeBundle):
         self.__table_0.description = "Above shows the results of the match"
 
         self.__prompt_0.options = {
-            '1': Command(lambda: self.__entry_node.set_next(self.__node_0), value="Record Match"),
-            '2': Command(lambda: self.__entry_node.set_next(self.__node_2), value="Tabular Matcher",
-                         command=Command(self._set_tabular_matcher))
+            '1': Command(lambda: self.__entry_node.set_next(self.__node_2), value="Tabular Matcher",
+                         command=Command(self._set_tabular_matcher)),
+            # '2': Command(lambda: self.__entry_node.set_next(self.__node_0), value="Record Match"),
             }
         
         self.__prompt_1.options = {
@@ -310,13 +310,14 @@ class RatingMatch(NodeBundle):
     def _execute(self):
     
         if self.__prompt_0.responses == '1':
-            query_records = self.query_tool.results(as_format='records')
-            df, match_info = self.rating_worksheet.match_records(query_records)
-            
-        elif self.__prompt_0.responses == '2':
             p_bar = tqdm(total=len(self.rating_worksheet.df))
             records, match_info = self.tabular_matcher.match(update_func=lambda: p_bar.update(1))
             df = pandas.DataFrame.from_dict(records, orient='index')
+
+        # elif self.__prompt_0.responses == '2':
+        #     query_records = self.query_tool.results(as_format='records')
+        #     df, match_info = self.rating_worksheet.match_records(query_records)
+        
         else:
             return
 
