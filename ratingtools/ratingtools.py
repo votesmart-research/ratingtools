@@ -13,7 +13,7 @@ from vs_library import database, cli
 from vs_library.database import database_cli
 from vs_library.tools import pandas_extension
 
-from tabular_matcher import matcher
+from record_matcher import matcher
 from rapidfuzz import fuzz
 
 
@@ -27,11 +27,11 @@ def main():
     connection_adapter = database.PostgreSQL(None)
     query_tool = database.QueryTool(connection_adapter)
     pandas_matcher = pandas_extension.PandasMatcher()
-    tabular_matcher = matcher.TabularMatcher()
+    record_matcher = matcher.RecordMatcher()
 
     clean = lambda x: str(x).strip().lower()
 
-    tabular_matcher.config.scorers_by_column.SCORERS.update(
+    record_matcher.config.scorers_by_column.SCORERS.update(
                                         {'Base': lambda x,y: fuzz.ratio(clean(x), clean(y)),
                                       'Partial': lambda x,y: fuzz.partial_ratio(clean(x), clean(y)),
                                     'Token Set': lambda x,y: fuzz.token_set_ratio(clean(x), clean(y)),
@@ -40,7 +40,7 @@ def main():
                            'Partial Token Sort': lambda x,y: fuzz.partial_token_sort_ratio(clean(x), clean(y)),
                                      'Weighted': lambda x,y: fuzz.WRatio(clean(x), clean(y)),
                                         })
-    tabular_matcher.config.scorers_by_column.default = 'Weighted'
+    record_matcher.config.scorers_by_column.default = 'Weighted'
 
 
     # INTERFACE / CONTROLLER
@@ -49,7 +49,7 @@ def main():
     database_connection = match_cli.DatabaseConnection(connection_manager, connection_adapter, parent=analyze_rating_worksheet)
     query_forms = match_cli.SelectQueryForms(query_tool, parent=database_connection)
     execute_query = database_cli.QueryExecution(query_tool, query_form=query_forms, parent=query_forms)
-    rating_match = match_cli.RatingMatch(rating_worksheet_match, query_tool, tabular_matcher, query_forms=query_forms, parent=execute_query)
+    rating_match = match_cli.RatingMatch(rating_worksheet_match, query_tool, record_matcher, query_forms=query_forms, parent=execute_query)
 
     import_rating_worksheet_harvest = match_cli.ImportRatingWorksheet(rating_worksheet_harvest)
     generate_harvest = harvest_cli.GenerateHarvest(rating_harvest, rating_worksheet_harvest, parent=import_rating_worksheet_harvest)

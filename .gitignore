@@ -132,4 +132,3 @@ dmypy.json
 .DS_Store
 *.ini
 vs_library
-tabular_matcher

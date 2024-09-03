@@ -2,6 +2,7 @@ pandas
 pg8000
 rapidfuzz
 python-Levenshtein
+tqdm
 
 git+ssh://git@github.com/votesmart-projects/vs_library.git#egg=vs_library
-git+ssh://git@github.com/jtai-dev/tabular_matcher.git#egg=tabular_matcher
+git+ssh://git@github.com/jtai-dev/record_matcher.git#egg=record_matcher

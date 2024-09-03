@@ -228,7 +228,7 @@ class RatingMatch(NodeBundle):
     def __init__(self, 
                  rating_worksheet, 
                  query_tool, 
-                 tabular_matcher, 
+                 record_matcher, 
                  query_forms=None, 
                  parent=None):
 
@@ -241,7 +241,7 @@ class RatingMatch(NodeBundle):
         query_tool : vs_library.database.QueryTool
             Controller that contains the results of query
 
-        tabular_matcher: tabular_matcher.matcher.TabularMatcher
+        record_matcher: record_matcher.matcher.RecordMatcher
             Controller that manages matching with tabular formatted data
 
         query_forms : NodeBundle, optional
@@ -253,7 +253,7 @@ class RatingMatch(NodeBundle):
         name = 'rating-match'
         self.rating_worksheet = rating_worksheet
         self.query_tool = query_tool
-        self.tabular_matcher = tabular_matcher
+        self.record_matcher = record_matcher
         
         # OBJECTS
         self.__prompt_0 = Prompt("Things are set. What matching tool you would like to use?")
@@ -261,7 +261,7 @@ class RatingMatch(NodeBundle):
         self.__display_0 = Display("Matching in progress...", command=Command(self._execute))
         self.__table_0 = Table([], header=False)
 
-        self._set_tabular_matcher()
+        self._set_record_matcher()
         
         # NODES
         self.__entry_node = Node(self.__prompt_0, name=f'{name}_choose-tool',
@@ -274,7 +274,7 @@ class RatingMatch(NodeBundle):
         self.__node_2 = Node(self.__prompt_1, name=f"{name}_tabular-matcher", parent=self.__entry_node,
                              clear_screen=True)
 
-        self.__bundle_0 = pandas_extension_cli.TBSettings(tabular_matcher, parent=self.__node_2)
+        self.__bundle_0 = pandas_extension_cli.TBSettings(record_matcher, parent=self.__node_2)
         self.__bundle_1 = ExportMatchedDf(None, parent=self.__node_1)
         self.__bundle_2 = database_cli.ExportQueryResults(self.query_tool, parent=self.__bundle_1)
 
@@ -291,7 +291,7 @@ class RatingMatch(NodeBundle):
 
         self.__prompt_0.options = {
             '1': Command(lambda: self.__entry_node.set_next(self.__node_2), value="Tabular Matcher",
-                         command=Command(self._set_tabular_matcher)),
+                         command=Command(self._set_record_matcher)),
             # '2': Command(lambda: self.__entry_node.set_next(self.__node_0), value="Record Match"),
             }
         
@@ -311,7 +311,7 @@ class RatingMatch(NodeBundle):
     
         if self.__prompt_0.responses == '1':
             p_bar = tqdm(total=len(self.rating_worksheet.df))
-            records, match_info = self.tabular_matcher.match(update_func=lambda: p_bar.update(1))
+            records, match_info = self.record_matcher.match(update_func=lambda: p_bar.update(1))
             df = pandas.DataFrame.from_dict(records, orient='index')
 
         # elif self.__prompt_0.responses == '2':
@@ -331,12 +331,11 @@ class RatingMatch(NodeBundle):
         for k, v in match_info.items():
             self.__table_0.table.append([k, str(v)])
 
-    def _set_tabular_matcher(self):
+    def _set_record_matcher(self):
 
-        self.tabular_matcher.x_records = self.rating_worksheet.df.to_dict('index')
-        self.tabular_matcher.y_records = self.query_tool.results(as_format='records')
-        print(self.tabular_matcher.y_records)
-        self.tabular_matcher.config.populate()
+        self.record_matcher.x_records = self.rating_worksheet.df.to_dict('index')
+        self.record_matcher.y_records = self.query_tool.results(as_format='records')
+        self.record_matcher.config.populate()
 
 
 class ExportMatchedDf(pandas_extension_cli.ExportSpreadsheet):
